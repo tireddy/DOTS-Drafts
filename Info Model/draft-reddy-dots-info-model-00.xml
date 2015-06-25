@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc toc="yes"?>
+<?rfc tocompact="yes"?>
+<?rfc tocdepth="3"?>
+<?rfc tocindent="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc comments="yes"?>
+<?rfc inline="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<rfc category="std" docName="draft-reddy-dots-info-model-00" ipr="trust200902">
+  <front>
+    <title abbrev="Information model for DOTS">Information Model for DDoS Open
+    Threat Signaling (DOTS)</title>
+
+    <author fullname="Tirumaleswar Reddy" initials="T." surname="Reddy">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>Cessna Business Park, Varthur Hobli</street>
+
+          <street>Sarjapur Marathalli Outer Ring Road</street>
+
+          <city>Bangalore</city>
+
+          <region>Karnataka</region>
+
+          <code>560103</code>
+
+          <country>India</country>
+        </postal>
+
+        <email>tireddy@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Prashanth Patil" initials="P." surname="Patil">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>Cessna Business Park, Varthur Hobli</street>
+
+          <street>Sarjapur Marathalli Outer Ring Road</street>
+
+          <city>Bangalore</city>
+
+          <country>India</country>
+        </postal>
+
+        <email>praspati@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Mike Geller" initials="M." surname="Geller">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>3250</street>
+
+          <city></city>
+
+          <region>Florida</region>
+
+          <code>33309</code>
+
+          <country>USA</country>
+        </postal>
+
+        <email>mgeller@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Dan Wing" initials="D." surname="Wing">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>170 West Tasman Drive</street>
+
+          <city>San Jose</city>
+
+          <region>California</region>
+
+          <code>95134</code>
+
+          <country>USA</country>
+        </postal>
+
+        <email>dwing@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Sandeep Rao" initials="S." surname="Rao">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>Cessna Business Park, Varthur Hobli</street>
+
+          <street>Sarjapur Marathalli Outer Ring Road</street>
+
+          <city>Bangalore</city>
+
+          <region>Karnataka</region>
+
+          <code>560103</code>
+
+          <country>India</country>
+        </postal>
+
+        <email>rsandeep@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Mohamed Boucadair" initials="M." surname="Boucadair">
+      <organization>France Telecom</organization>
+
+      <address>
+        <postal>
+          <street></street>
+
+          <city>Rennes</city>
+
+          <region></region>
+
+          <code>35000</code>
+
+          <country>France</country>
+        </postal>
+
+        <email>mohamed.boucadair@orange.com</email>
+      </address>
+    </author>
+
+    <date />
+
+    <workgroup>DOTS</workgroup>
+
+    <abstract>
+      <t>This document discusses the need and the mechanisms to dynamically
+      update configuration of network monitoring devices to help identify
+      distributed denial-of-service (DDoS) attacks in a network. Once an
+      attack is signalled by a client or detected locally, provisioning cycles
+      are triggered to program a set of network elements to undertake
+      appropriate actions (including, blackhole, drop, rate-limit, or add to
+      watch list) on the suspect traffic.</t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section anchor="introduction" title="Introduction">
+      <t>A distributed denial-of-service (DDoS) attack is an attempt to make
+      machines or network resources unavailable to their intended users. In
+      most cases, sufficient scale can be achieved by compromising enough
+      end-hosts and using those infected hosts to perpetrate and amplify the
+      attack. The victim in this attack can be an application server, a client
+      or router, a firewall, or an entire network, etc. Typically, enterprises
+      configure network elements or monitoring devices (appliances) to export
+      traffic flow information for further processing by applications hosted
+      on other devices, such as DDoS monitoring applications.</t>
+
+      <t>DDoS monitoring applications analyze and correlate flow records to
+      baseline proper behaviour and measure deviation from that expected norm
+      ("Observed" vs. "Expected"). Analytics is applied to deliver a baseline
+      of the network in normal operation conditions and then to highlight when
+      an anomalous event occurs. As DDoS attacks get more complex and more
+      sophisticated, DDoS monitoring applications may need more or different
+      fields in the flow records, change the frequency of flow record
+      collection, increase the granularity of flow record collection for
+      traffic to a network resource, tweak the sampling logic, enable or
+      disable packet sampling, modify the packet selection technique for
+      sampling, etc. to adjust their decision-making process for a better
+      detection efficiency.</t>
+
+      <t>This document explains mechanisms to dynamically change the
+      configuration of IPFIX-compliant Monitoring Devices (<xref
+      target="RFC7011"></xref>) and PSAMP-compliant Monitoring Devices (<xref
+      target="RFC5476"></xref>) using the Network Configuration Protocol
+      (NETCONF) <xref target="RFC6241"></xref> to identify attacks on the
+      network and once an attack is detected use NETCONF to program
+      appropriate filtering rules on a set of network devices. In addition to
+      the required intelligence to decide which actions are needed, a
+      decision-making process to decide "where" (i.e., which network elements)
+      these filtering actions are to be performed.</t>
+    </section>
+
+    <section anchor="notation" title="Notational Conventions">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+      document are to be interpreted as described in <xref
+      target="RFC2119"></xref>.</t>
+    </section>
+
+    <section title="Solution Overview">
+      <t>Flow collector (or DDoS monitoring application) needs to program
+      IPFIX- and PSAMP-compliant monitoring devices using vendor-independent
+      configuration data model. A vendor-independent configuration data model
+      helps to store and manage the configuration data of Monitoring Devices
+      in a consistent format. The data model could be specified using YANG
+      <xref target="RFC6020"></xref> to dynamically configure monitoring
+      devices. The configuration data models for IPFIX and PSAMP is discussed
+      in <xref target="RFC6728"></xref>.</t>
+
+      <t>In order to offer more automation and dynamicity in changing the
+      configuration of network monitoring, this document proposes an
+      architecture that is composed of two parts:</t>
+
+      <t><list style="numbers">
+          <t>Flow Collector communicates the configuration of network
+          monitoring to the DOTS Controller. This assumes the flow controller
+          has been provisioned with the locator(s) of DOTS Controller to
+          contact. For multi-homed networks, the Flow Controller should
+          contact the DOTS Controller attached to the network from which the
+          suspect traffic is received from.</t>
+
+          <t>The DOTS Controller is responsible to configure the monitoring
+          devices. This assumes the DOTS Controller has access to the
+          underlying network topology (including the interconnection map and
+          the set of advanced service functions).</t>
+        </list></t>
+
+      <t><figure anchor="figure1" title="Configuration Cycle for IPFIX">
+          <artwork><![CDATA[ 
+                                     1. Initial DDOS monitoring 
+                                         provisioning cycle
+                                               |
+ 2. Configure monitoring                       | 
+    devices using NETCONF                      | 5. DDOS monitoring
+                                               |  re-provisiong cycle
+                                          +--------------+ 
+    +---------+-------------------+-------+              | 
+    |         |                   |       |  DOTS        | 
+    |         |                   |       |  Controller  |
+    V         V                   |       +-------+------+ 
+  +-------------+                 |               ^
+  | Config      |                 |               |
+  | manager     |                 |               |
+  +-------------+                 |               |
+    |     |                       |               |
+    |     |                       |               |
+    |     +---------+             |               |
+    |               |             |               |
+    v               v             v               |        
++--------+      +--------+      +--------+        |        
+| Switch | (..) | Middle |      | Router |        |  4. Update/Modify 
++--+-----+      | box    |      |        |        | monitoring config       
+   |            +---+----+      +--+-----+        |        
+   |                |              |              |        
+   |                |              |              |                   
+   |                |              |        +-----+---------+      
+   |                |              +------> +               |           
+   |                +---------------------> +   Flow        |           
+   +--------------------------------------> +   collector   |
+                                            |   + Analyzer  |           
+                                            +---------------+  
+        3. Export IPFIX messages, packet samples to flow collector
+
+]]></artwork>
+        </figure></t>
+
+      <t>Definitions:</t>
+
+      <t><list style="hanging">
+          <t hangText="Flow Collector:">A Flow Collector (referred to as
+          Collector) receives flow records from one or more monitoring devices
+          (referred to as Exporters). Flow records consist of information
+          elements such as IP addresses, application, ports, interfaces,
+          packets and other details relevant for DDoS monitoring and
+          analysis.</t>
+
+          <t hangText="Controller:">A Controller is an orchestration point
+          that receives abstract monitoring intents or profiles and then
+          translates them to device-specific configurations and delivers them
+          to monitoring devices via the "Config Manager".</t>
+
+          <t hangText="Monitoring Devices :">These are devices in the network
+          that are provisioned to monitor network flows, collect information
+          and export them to a "Flow Collector".</t>
+        </list></t>
+
+      <t><xref target="figure1"></xref> provides a high level overview of the
+      solution. The proposed solution is to build a dynamic configuration
+      model in DDoS Monitoring using a feedback system where a Flow Collector
+      can influence monitoring configurations on the devices to gather
+      information about a potential DDoS event.</t>
+
+      <t>The sequences marked (1)-(5) in <xref target="figure1"></xref> refers
+      to the work flow of the proposed solution, these flows can be largely
+      categorized into three phases:</t>
+
+      <t><list style="numbers">
+          <t>Initial Provisioning Cycle: Represents the initial state of the
+          monitoring configuration where an administrator updates the
+          Controller with a default or preliminary monitoring configuration
+          delivered to monitoring devices. For example, the initial
+          configuration on the Monitoring Devices is to collect information
+          elements such as IP addresses/prefixes, application type, transport
+          ports, flow timestamps, interfaces and so on.</t>
+
+          <t>Flow Monitoring: Refers to the activity of Monitoring Devices to
+          inspect and watch network flows. Based on the monitoring
+          configuration, the Monitoring Device is instructed to collect
+          specific flow information and export them to a "Flow Collector".</t>
+
+          <t>Flow Collection and Analysis: A "Flow Collector" device collects
+          and (possibly) aggregates flow information from one or more
+          Monitoring Devices. As the Collector continues to gather more and
+          more data, it can potentially correlate and analyze flow information
+          to "guess" or determine if a DDoS event is in progress. If so, the
+          Flow Collector may consider gathering additional data from the
+          monitoring devices and signals this intent to a "Controller".</t>
+
+          <t>Re-provisioning Cycle: The Controller receives from the "Flow
+          Collector", the intent to re-provision Monitoring Devices to produce
+          additional flow information elements. The Controller, then, delivers
+          the new or updated configuration to the appropriate Monitoring
+          Devices.</t>
+        </list></t>
+
+      <t>The other provisioning interface is the one between the DOTS
+      Controller and network elements. Concretely, when the Flow Collector
+      identifies an active attack, it signals to the DOTS Controller the set
+      of traffic identification information (including all suspect IP
+      addresses) together with a suggested action (e.g., rate-limit, drop,
+      monitor). Then, the DOTS Controller propagates the filtering rules to
+      the network elements (including routers, middleboxes). The Flow
+      Collector, after certain duration, requests the rules to block traffic
+      from these IP addresses be removed once the attack has stopped. Note,
+      <xref target="RFC6088"></xref> provides typical information that can be
+      included in the traffic identification information set.</t>
+
+      <t><figure anchor="figure2"
+          title="Configuration Cycle for Attack Mitigation">
+          <artwork><![CDATA[   
+ 2. Configure network devices                  
+    using NETCONF                 
+                                               
+                                        +--------------+ 
+    +---------+-----------------+-------+              | 
+    |         |                 |       |  DOTS        | 
+    |         |                 |       |  Controller  |
+    V         V                 |       +-------+------+ 
+  +-------------+               |              ^
+  | Config      |               |              |
+  | manager     |               |              |
+  +-------------+               |              |
+    |     |                     |              |
+    |     |                     |              |
+    |     +---------+           |              |
+    |               |           |              |
+    v               v           v              |        
++--------+      +--------+   +--------+        |        
+| Switch |(...) | Middle |   | Router |        |  1. Install/Remove
++--------+      | box    |   |        |        |   filtering rules   
+                +--------+   +--------+        |        
+                                               V
+                                            +--+--------+           
+                                            | Flow      |           
+                                            | collector |
+                                            |+ Analyzer |           
+                                            +-----------+            
+]]></artwork>
+        </figure></t>
+
+      <t>As shown in <xref target="fig3"></xref>, two distinct interfaces are
+      defined: the one used by a client to signal appropriate filtering rules
+      to an controller (for example, [I-D.reddy-ddos-mitigation] can be used
+      for this interface) and the one to enforce polices in the appropriate
+      nodes (for example, NETCONF can be used).</t>
+
+      <t><figure align="center" anchor="fig3"
+          title="Signalling Interface &amp; Policy Enforcement Interface">
+          <artwork><![CDATA[
+ Client's Network                        Network Provider
+  +-----------+                            +-----------+
+  |   DOTS    |                            |   DOTS    |
+  |  Client   |<---Signalling Interface--->| Controller|
+  |(Collector)|                            |  (Server) |
+  +-----------+                            +-----+-----+
+                                                 |
+                                     Policy Enforcement Interface
+                                                 |
+                             +--------------------+-+
+                             |                      |
+                      +-------------+               |              
+                      | Config      |               |               
+                      | manager     |               |               
+                      +-------------+               |               
+                           |     |                  |               
+                           |     |                  |              
+                           |     +---------+        |               
+                           |               |        |              
+                           v               v        v             
+                       +--------+      +--------+ +--------+          
+                       | Switch |(...) | Middle | | Router |        
+                       +--------+      | box    | |        |         
+                                       +--------+ +--------+             
+
+]]></artwork>
+        </figure></t>
+    </section>
+
+    <section anchor="security" title="Security Considerations">
+      <t>The authentication mechanism between the Flow Collector and DOTS
+      Controller should be immune to pervasive monitoring <xref
+      target="RFC7258"></xref>. An attacker can intercept traffic by
+      installing rules that would lead to redirect all or part of the traffic
+      to an illegitimate Flow Collector. Means to protect against attacks that
+      would lead to install, remove, or modify rules must be supported.</t>
+
+      <t>In order to protect against denial of service that would be caused by
+      a misbehaving trusted Flow Collector, DOTS Controller should rate limit
+      the configuration changes received from a Flow Collector.</t>
+    </section>
+
+    <section anchor="ack" title="Acknowledgements">
+      <t>TODO</t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119"?>
+
+      <?rfc include="reference.RFC.7011"?>
+
+      <?rfc include="reference.RFC.6728"?>
+
+      <?rfc include="reference.RFC.6241"?>
+
+      <?rfc include="reference.RFC.6020"?>
+
+      <?rfc include="reference.RFC.5476"?>
+    </references>
+
+    <references title="Informative References">
+      <?rfc include="reference.RFC.7258"?>
+
+      <?rfc include='reference.RFC.6088'?>
+    </references>
+  </back>
+</rfc>
