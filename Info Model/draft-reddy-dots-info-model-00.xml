@@ -160,7 +160,7 @@
       end-hosts and using those infected hosts to perpetrate and amplify the
       attack. The victim in this attack can be an application server, a client
       or router, a firewall, or an entire network, etc. Typically, enterprises
-      configure network elements or monitoring devices (appliances) to export
+      configure Network Elements and Monitoring Devices (appliances) to export
       traffic flow information for further processing by applications hosted
       on other devices, such as DDoS monitoring applications.</t>
 
@@ -174,7 +174,7 @@
       collection, increase the granularity of flow record collection for
       traffic to a network resource, tweak the sampling logic, enable or
       disable packet sampling, modify the packet selection technique for
-      sampling, etc. to adjust their decision-making process for a better
+      sampling, etc., to adjust their decision-making process for a better
       detection efficiency.</t>
 
       <t>This document explains mechanisms to dynamically change the
@@ -182,11 +182,12 @@
       target="RFC7011"></xref>) and PSAMP-compliant Monitoring Devices (<xref
       target="RFC5476"></xref>) using the Network Configuration Protocol
       (NETCONF) <xref target="RFC6241"></xref> to identify attacks on the
-      network and once an attack is detected use NETCONF to program
-      appropriate filtering rules on a set of network devices. In addition to
-      the required intelligence to decide which actions are needed, a
-      decision-making process to decide "where" (i.e., which network elements)
-      these filtering actions are to be performed.</t>
+      network and once an attack is detected, use NETCONF to carry
+      instructions meant to dynamically enforce appropriate filtering rules on
+      a set of network devices. In addition to the required intelligence to
+      decide which actions are needed, a decision-making process to decide
+      "where" (i.e., which network elements) these filtering actions are to be
+      performed.</t>
     </section>
 
     <section anchor="notation" title="Notational Conventions">
@@ -196,14 +197,46 @@
       target="RFC2119"></xref>.</t>
     </section>
 
+    <section title="Terminology">
+      <t>This document makes use of the following terms:<list style="symbols">
+          <t>Network Element: refers to a node that is involved in the
+          delivery of connectivity services. A Network Element can be a
+          router, a switch, a service function (e.g., firewall), etc.</t>
+
+          <t>DOTS Client: Refers to the entity that is responsible for
+          signalling an attack. The entity could be a network resource (e.g.
+          Network application) subjected to attack or flow collector,
+          firewall, CPE etc. detecting attack on the network.</t>
+
+          <t>DOTS Controller: Refers to the entity that is responsible for
+          undertaking appropriate actions to satisfy the requests from a DOTS
+          Client.</t>
+
+          <t>Flow Collector: Refers to the functional entity that is
+          responsible for instructing the Network Elements about the
+          monitoring strategy. It is also responsible for collecting
+          monitoring information from the network. One or multiple Flow
+          Collectors may be enabled. Considerations about internal
+          communications between multiple Flow Collectors are out of scope. A
+          Flow Collector may be collocated with a DOTS Client.</t>
+
+          <t>Configuration Manager: Refers to an entity that is responsible
+          for the provisioning of a set of Network Elements.</t>
+
+          <t>Monitoring Devices: These are devices in the network that are
+          provisioned to monitor network flows, collect information and export
+          them to a "Flow Collector".</t>
+        </list></t>
+    </section>
+
     <section title="Solution Overview">
       <t>Flow collector (or DDoS monitoring application) needs to program
-      IPFIX- and PSAMP-compliant monitoring devices using vendor-independent
-      configuration data model. A vendor-independent configuration data model
+      IPFIX- and PSAMP-compliant Monitoring Devices using vendor-independent
+      configuration data model. A vendor-independent configuration data models
       helps to store and manage the configuration data of Monitoring Devices
       in a consistent format. The data model could be specified using YANG
-      <xref target="RFC6020"></xref> to dynamically configure monitoring
-      devices. The configuration data models for IPFIX and PSAMP is discussed
+      <xref target="RFC6020"></xref> to dynamically configure Monitoring
+      Devices. The configuration data models for IPFIX and PSAMP are discussed
       in <xref target="RFC6728"></xref>.</t>
 
       <t>In order to offer more automation and dynamicity in changing the
@@ -212,14 +245,14 @@
 
       <t><list style="numbers">
           <t>Flow Collector communicates the configuration of network
-          monitoring to the DOTS Controller. This assumes the flow controller
-          has been provisioned with the locator(s) of DOTS Controller to
+          monitoring to the DOTS Controller. This assumes the Flow Controller
+          has been provisioned with the locator(s) of DOTS Controller(s) to
           contact. For multi-homed networks, the Flow Controller should
           contact the DOTS Controller attached to the network from which the
           suspect traffic is received from.</t>
 
-          <t>The DOTS Controller is responsible to configure the monitoring
-          devices. This assumes the DOTS Controller has access to the
+          <t>The DOTS Controller is responsible for configuring the Monitoring
+          Devices. This assumes the DOTS Controller has access to the
           underlying network topology (including the interconnection map and
           the set of advanced service functions).</t>
         </list></t>
@@ -231,7 +264,7 @@
                                                |
  2. Configure monitoring                       | 
     devices using NETCONF                      | 5. DDOS monitoring
-                                               |  re-provisiong cycle
+                                               | re-provisioning cycle
                                           +--------------+ 
     +---------+-------------------+-------+              | 
     |         |                   |       |  DOTS        | 
@@ -263,41 +296,21 @@
 ]]></artwork>
         </figure></t>
 
-      <t>Definitions:</t>
-
-      <t><list style="hanging">
-          <t hangText="Flow Collector:">A Flow Collector (referred to as
-          Collector) receives flow records from one or more monitoring devices
-          (referred to as Exporters). Flow records consist of information
-          elements such as IP addresses, application, ports, interfaces,
-          packets and other details relevant for DDoS monitoring and
-          analysis.</t>
-
-          <t hangText="Controller:">A Controller is an orchestration point
-          that receives abstract monitoring intents or profiles and then
-          translates them to device-specific configurations and delivers them
-          to monitoring devices via the "Config Manager".</t>
-
-          <t hangText="Monitoring Devices :">These are devices in the network
-          that are provisioned to monitor network flows, collect information
-          and export them to a "Flow Collector".</t>
-        </list></t>
-
       <t><xref target="figure1"></xref> provides a high level overview of the
       solution. The proposed solution is to build a dynamic configuration
       model in DDoS Monitoring using a feedback system where a Flow Collector
       can influence monitoring configurations on the devices to gather
       information about a potential DDoS event.</t>
 
-      <t>The sequences marked (1)-(5) in <xref target="figure1"></xref> refers
-      to the work flow of the proposed solution, these flows can be largely
+      <t>The sequences marked (1)-(5) in <xref target="figure1"></xref> refer
+      to the work flow of the proposed solution, these flows can be broadly
       categorized into three phases:</t>
 
       <t><list style="numbers">
           <t>Initial Provisioning Cycle: Represents the initial state of the
           monitoring configuration where an administrator updates the
           Controller with a default or preliminary monitoring configuration
-          delivered to monitoring devices. For example, the initial
+          delivered to Monitoring Devices. For example, the initial
           configuration on the Monitoring Devices is to collect information
           elements such as IP addresses/prefixes, application type, transport
           ports, flow timestamps, interfaces and so on.</t>
@@ -313,50 +326,53 @@
           more data, it can potentially correlate and analyze flow information
           to "guess" or determine if a DDoS event is in progress. If so, the
           Flow Collector may consider gathering additional data from the
-          monitoring devices and signals this intent to a "Controller".</t>
+          Monitoring Devices and signals this intent to a "Controller".</t>
 
           <t>Re-provisioning Cycle: The Controller receives from the "Flow
           Collector", the intent to re-provision Monitoring Devices to produce
-          additional flow information elements. The Controller, then, delivers
+          additional flow information elements. The Controller, then delivers
           the new or updated configuration to the appropriate Monitoring
           Devices.</t>
         </list></t>
 
       <t>The other provisioning interface is the one between the DOTS
-      Controller and network elements. Concretely, when the Flow Collector
+      Controller and Network Elements. Concretely, when the Flow Collector
       identifies an active attack, it signals to the DOTS Controller the set
       of traffic identification information (including all suspect IP
       addresses) together with a suggested action (e.g., rate-limit, drop,
       monitor). Then, the DOTS Controller propagates the filtering rules to
-      the network elements (including routers, middleboxes). The Flow
+      the Network Elements (including routers, middleboxes). The Flow
       Collector, after certain duration, requests the rules to block traffic
-      from these IP addresses be removed once the attack has stopped. Note,
-      <xref target="RFC6088"></xref> provides typical information that can be
-      included in the traffic identification information set.</t>
+      from these IP addresses be removed once the attack has stopped. Means to
+      detect an attack is not valid anymore may be static (an administrative
+      decision) or dynamic (based on an analysis of the traffic).</t>
+
+      <t>Note, <xref target="RFC6088"></xref> provides typical information
+      that can be included in the traffic identification information set.</t>
 
       <t><figure anchor="figure2"
           title="Configuration Cycle for Attack Mitigation">
           <artwork><![CDATA[   
- 2. Configure network devices                  
+ a. Configure network devices                  
     using NETCONF                 
-                                               
+ b. Configuration ACK/NACK                                             
                                         +--------------+ 
-    +---------+-----------------+-------+              | 
+    +---------+-----------------+------>+              | 
     |         |                 |       |  DOTS        | 
     |         |                 |       |  Controller  |
     V         V                 |       +-------+------+ 
   +-------------+               |              ^
   | Config      |               |              |
-  | manager     |               |              |
-  +-------------+               |              |
+  | manager     |               |              |  1. Install/Remove
+  +-------------+               |              |   filtering rules  
     |     |                     |              |
-    |     |                     |              |
-    |     +---------+           |              |
+    |     |                     |              |  2. ACK/NACK
+    |     +---------+           |              |  
     |               |           |              |
     v               v           v              |        
 +--------+      +--------+   +--------+        |        
-| Switch |(...) | Middle |   | Router |        |  1. Install/Remove
-+--------+      | box    |   |        |        |   filtering rules   
+| Switch |(...) | Middle |   | Router |        |  
++--------+      | box    |   |        |        |  
                 +--------+   +--------+        |        
                                                V
                                             +--+--------+           
@@ -368,20 +384,21 @@
         </figure></t>
 
       <t>As shown in <xref target="fig3"></xref>, two distinct interfaces are
-      defined: the one used by a client to signal appropriate filtering rules
-      to an controller (for example, [I-D.reddy-ddos-mitigation] can be used
-      for this interface) and the one to enforce polices in the appropriate
-      nodes (for example, NETCONF can be used).</t>
+      defined: the one used by a Flow collector to signal appropriate
+      filtering rules to a DOTS Controller (for example,
+      [I-D.reddy-dots-transport] can be used for this interface) and the one
+      to enforce polices in the appropriate nodes (for example, NETCONF can be
+      used).</t>
 
       <t><figure align="center" anchor="fig3"
           title="Signalling Interface &amp; Policy Enforcement Interface">
           <artwork><![CDATA[
- Client's Network                        Network Provider
   +-----------+                            +-----------+
   |   DOTS    |                            |   DOTS    |
   |  Client   |<---Signalling Interface--->| Controller|
-  |(Collector)|                            |  (Server) |
+  |[Collector]|                            |  (Server) |
   +-----------+                            +-----+-----+
+                                                 ^
                                                  |
                                      Policy Enforcement Interface
                                                  |
@@ -403,6 +420,24 @@
 
 ]]></artwork>
         </figure></t>
+
+      <t>DOTS Client and DOTS controller could be located in different
+      administrative domains. Local decisions (e.g., install filters) can be
+      made locally be the DOTS Controller. A notification is then sent to the
+      DOTS Clients using the signaling interface. Concretely, the
+      decision-making process of the DOTS Controller can be based on events
+      that are reported by other DOTS Clients, local monitoring tools, etc.
+      Appropriate notifications and feedback objects should be carried over
+      the signaling interface.</t>
+
+      <t>The signaling interface can also be used by a DOTS Controller to
+      request a confirmation from a DOTS Client about the enforcement of a
+      filter. For example, this can occur when the DOTS Controller detects
+      that some traffic is likely to be a DoS, before undertaking actions on
+      Network Elements, the DOTS Controller contacts first the DOTS Client to
+      double check whether that traffic is really a DoS. Upon confirmation
+      from the DOTS Client, the DOTS Controller initiates a configuration
+      cycle accordingly.</t>
     </section>
 
     <section anchor="security" title="Security Considerations">
@@ -419,7 +454,7 @@
     </section>
 
     <section anchor="ack" title="Acknowledgements">
-      <t>TODO</t>
+      <t>Thanks to C. Jacquenet for the review.</t>
     </section>
   </middle>
 
