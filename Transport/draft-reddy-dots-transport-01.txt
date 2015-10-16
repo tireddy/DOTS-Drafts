@@ -78,12 +78,12 @@ Table of Contents
        4.1.1.  Signal SOS  . . . . . . . . . . . . . . . . . . . . .   5
        4.1.2.  Recall SOS  . . . . . . . . . . . . . . . . . . . . .   6
        4.1.3.  Retrieving SOS  . . . . . . . . . . . . . . . . . . .   6
-     4.2.  REST  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     4.2.  REST  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
        4.2.1.  Filtering Rules . . . . . . . . . . . . . . . . . . .   7
    5.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  10
    6.  Security Considerations . . . . . . . . . . . . . . . . . . .  10
-   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  10
-   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+   7.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  11
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
      8.1.  Normative References  . . . . . . . . . . . . . . . . . .  11
      8.2.  Informative References  . . . . . . . . . . . . . . . . .  11
    Appendix A.  BGP  . . . . . . . . . . . . . . . . . . . . . . . .  11
@@ -237,6 +237,7 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
      "policy-id": number,
      "target-ip": string,
      "target-port": string,
+     "target-protocol": string,
    }
 
                        Figure 1: POST to signal SOS
@@ -252,7 +253,11 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
    target-ip:  A list of addresses or prefixes under attack.  This is an
       optional attribute.
 
-   target-port:  A list of ports under attack.. This is an optional
+   target-port:  A list of ports under attack.  This is an optional
+      attribute.
+
+   target-protocol:  A list of protocols under attack.  Valid protocol
+      values include tcp, udp, sctp and dccp.  This is an optional
       attribute.
 
    Note: administrative-related clauses may be included as part of the
@@ -262,16 +267,11 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
    The following example shows POST request to signal that a Web-Service
    is under attack.
 
-     POST https://www.example.com/.well-known/v1/SOS
-     Accept: application/json
-     Content-type: application/json
-      {
-        "policy-id": 123321333242,
-        "resource-ip": "2002:db8:6401::1",
-        "resource-port": "443",
-      }
 
-                       Figure 2: POST to signal SOS
+
+
+
+
 
 
 
@@ -281,6 +281,18 @@ Reddy, et al.            Expires April 18, 2016                 [Page 5]
 
 Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
+
+     POST https://www.example.com/.well-known/v1/SOS
+     Accept: application/json
+     Content-type: application/json
+      {
+        "policy-id": 123321333242,
+        "target-ip": "2002:db8:6401::1",
+        "target-port": "443",
+        "target-protocol": "tcp",
+      }
+
+                       Figure 2: POST to signal SOS
 
 4.1.2.  Recall SOS
 
@@ -316,6 +328,16 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
                     Figure 4: GET to retrieve the rules
 
+
+
+
+
+
+Reddy, et al.            Expires April 18, 2016                 [Page 6]
+
+Internet-Draft        Co-operative DDoS Mitigation          October 2015
+
+
 4.2.  REST
 
    A DOTS client could use HTTP to provision and manage filters on the
@@ -329,15 +351,6 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
    requests to the DOTS relay.  The DOTS relay acts as an HTTP proxy,
    validates the rules and proxies the HTTP requests containing the
    black-listed IP addresses to the DOTS server.  When the DOTS relay
-
-
-
-
-Reddy, et al.            Expires April 18, 2016                 [Page 6]
-
-Internet-Draft        Co-operative DDoS Mitigation          October 2015
-
-
    receives the associated HTTP response from the HTTP server, it
    propagates the response back to the DOTS client.
 
@@ -369,19 +382,6 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
    The following APIs define means for a DOTS client to configure
    filtering rules on a DOTS server.
 
-4.2.1.1.  Install filtering rules
-
-   An HTTP POST request will be used to push filtering rules to the DOTS
-   server.
-
-
-
-
-
-
-
-
-
 
 
 
@@ -393,6 +393,11 @@ Reddy, et al.            Expires April 18, 2016                 [Page 7]
 
 Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
+
+4.2.1.1.  Install filtering rules
+
+   An HTTP POST request will be used to push filtering rules to the DOTS
+   server.
 
   POST {scheme}://{host}:{port}/.well-known/{version}/{URI suffix for filtering}
   Accept: application/json
@@ -421,13 +426,13 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
    traffic-protocol:   Valid protocol values include tcp and udp.
 
-   source-protocol-port:   For TCP or UDP: the source range of ports
-      (e.g., 1024-65535).
+   source-protocol-port:   For TCP or UDP or SCTP or DCCP: the source
+      range of ports (e.g., 1024-65535).
 
-   destination-protocol-port:   For TCP or UDP: the destination range of
-      ports (e.g., 443-443).  This information is useful to avoid
-      disturbing a group of customers when address sharing is in use
-      [RFC6269].
+   destination-protocol-port:   For TCP or UDP or SCTP or DCCP: the
+      destination range of ports (e.g., 443-443).  This information is
+      useful to avoid disturbing a group of customers when address
+      sharing is in use [RFC6269].
 
    destination-ip:   The destination IP addresses or prefixes.
 
@@ -438,17 +443,17 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
       request is not reiterated, the rule will be withdrawn at the
       upstream network.  A null value is not allowed.
 
-   traffic-rate:   This field carries the rate information in IEEE
-      floating point [IEEE.754.1985] format, units being bytes per
-      second.  A traffic-rate of '0' should result on all traffic for
-      the particular flow to be discarded.
-
 
 
 Reddy, et al.            Expires April 18, 2016                 [Page 8]
 
 Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
+
+   traffic-rate:   This field carries the rate information in IEEE
+      floating point [IEEE.754.1985] format, units being bytes per
+      second.  A traffic-rate of '0' should result on all traffic for
+      the particular flow to be discarded.
 
    The relative order of two rules is determined by comparing their
    respective policy identifiers.  The rule with lower numeric policy
@@ -493,11 +498,6 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
                    Figure 8: DELETE to remove the rules
 
-4.2.1.3.  Retrieving installed filtering rules
-
-   An HTTP GET request will be used to retrieve filtering rules
-   programmed on the DOTS server.
-
 
 
 
@@ -505,6 +505,11 @@ Reddy, et al.            Expires April 18, 2016                 [Page 9]
 
 Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
+
+4.2.1.3.  Retrieving installed filtering rules
+
+   An HTTP GET request will be used to retrieve filtering rules
+   programmed on the DOTS server.
 
   1) To retrieve all the black-lists rules programmed by the DOTS client.
 
@@ -545,11 +550,6 @@ Internet-Draft        Co-operative DDoS Mitigation          October 2015
    from within the trusted domain if an entity has been corrupted.
    Adequate means to monitor trusted nodes should also be enabled.
 
-7.  Acknowledgements
-
-   Thanks to C.  Jacquenet for the discussion and comments.
-
-8.  References
 
 
 
@@ -561,6 +561,12 @@ Reddy, et al.            Expires April 18, 2016                [Page 10]
 
 Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
+
+7.  Acknowledgements
+
+   Thanks to C.  Jacquenet for the discussion and comments.
+
+8.  References
 
 8.1.  Normative References
 
@@ -604,12 +610,6 @@ Appendix A.  BGP
    acknowledgment for the filtering request, the DOTS client should
    monitor and apply similar rules in its own network in cases where the
    DOTS server is unable to enforce the filtering rules.  In addition,
-   enforcement of filtering rules of BGP on Internet routers are usually
-   governed by the maximum number of data elements the routers can hold
-   as well as the number of events they are able to process in a given
-   unit of time.
-
-
 
 
 
@@ -617,6 +617,11 @@ Reddy, et al.            Expires April 18, 2016                [Page 11]
 
 Internet-Draft        Co-operative DDoS Mitigation          October 2015
 
+
+   enforcement of filtering rules of BGP on Internet routers are usually
+   governed by the maximum number of data elements the routers can hold
+   as well as the number of events they are able to process in a given
+   unit of time.
 
 Authors' Addresses
 
@@ -660,11 +665,6 @@ Authors' Addresses
    France
 
    Email: mohamed.boucadair@orange.com
-
-
-
-
-
 
 
 

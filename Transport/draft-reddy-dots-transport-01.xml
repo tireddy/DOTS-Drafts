@@ -182,7 +182,7 @@
       describes a means for an enterprise, which act as DOTS clients, to
       dynamically inform its DOTS server of the IP addresses or prefixes that
       are causing DDoS. A DOTS server can use this information to discard
-      flows from such IP addresses reaching the customer network. </t>
+      flows from such IP addresses reaching the customer network.</t>
 
       <t>The proposed mechanism can also be used between applications from
       various vendors that are deployed within the same network, some of them
@@ -191,7 +191,7 @@
       cooperations contributes to a ensure a highly automated network that is
       also robust, reliable and secure. The advantage of the proposed
       mechanism is that the DOTS server can provide protection to the DOTS
-      client from bandwidth-saturating DDoS traffic. </t>
+      client from bandwidth-saturating DDoS traffic.</t>
 
       <t>How a DOTS server determines which network elements should be
       modified to install appropriate filtering rules is out of scope. A
@@ -254,7 +254,7 @@
     <section title="Protocol for Signal Channel: HTTP REST">
       <t>A DOTS client can use RESTful APIs discussed in this section to
       signal/inform a DOTS server of an attack or any desired IP filtering
-      rules. </t>
+      rules.</t>
 
       <section title="SOS">
         <t>The following APIs define the means to signal an SOS from a DOTS
@@ -273,7 +273,8 @@
   {
      "policy-id": number,     
      "target-ip": string,
-     "target-port": string,
+     "target-port": string,     
+     "target-protocol": string,
    }
 ]]></artwork>
             </figure></t>
@@ -291,8 +292,12 @@
               <t hangText="target-ip:">A list of addresses or prefixes under
               attack. This is an optional attribute.</t>
 
-              <t hangText="target-port:">A list of ports under attack.. This
-              is an optional attribute.</t>
+              <t hangText="target-port:">A list of ports under attack. This is
+              an optional attribute.</t>
+
+              <t hangText="target-protocol:">A list of protocols under attack.
+              Valid protocol values include tcp, udp, sctp and dccp. This is
+              an optional attribute.</t>
             </list></t>
 
           <t>Note: administrative-related clauses may be included as part of
@@ -308,8 +313,9 @@
   Content-type: application/json
    {
      "policy-id": 123321333242,
-     "resource-ip": "2002:db8:6401::1",
-     "resource-port": "443", 
+     "target-ip": "2002:db8:6401::1",
+     "target-port": "443", 
+     "target-protocol": "tcp", 
    }
 ]]></artwork>
             </figure></t>
@@ -434,13 +440,14 @@
                 <t hangText="traffic-protocol: ">Valid protocol values include
                 tcp and udp.</t>
 
-                <t hangText="source-protocol-port: ">For TCP or UDP: the
-                source range of ports (e.g., 1024-65535).</t>
+                <t hangText="source-protocol-port: ">For TCP or UDP or SCTP or
+                DCCP: the source range of ports (e.g., 1024-65535).</t>
 
-                <t hangText="destination-protocol-port: ">For TCP or UDP: the
-                destination range of ports (e.g., 443-443). This information
-                is useful to avoid disturbing a group of customers when
-                address sharing is in use <xref target="RFC6269"></xref>.</t>
+                <t hangText="destination-protocol-port: ">For TCP or UDP or
+                SCTP or DCCP: the destination range of ports (e.g., 443-443).
+                This information is useful to avoid disturbing a group of
+                customers when address sharing is in use <xref
+                target="RFC6269"></xref>.</t>
 
                 <t hangText="destination-ip: ">The destination IP addresses or
                 prefixes.</t>
@@ -545,7 +552,7 @@
       <t>TODO</t>
 
       <t>HTTPS MUST be used for data confidentiality and TLS based on client
-      certificate MUST be used for mutual authentication. </t>
+      certificate MUST be used for mutual authentication.</t>
 
       <t>Special care should be taken in order to ensure that the activation
       of the proposed mechanism won't have an impact on the stability of the
