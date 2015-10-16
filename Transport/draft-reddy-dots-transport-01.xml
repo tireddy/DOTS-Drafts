@@ -1,0 +1,612 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd">
+<?rfc toc="yes"?>
+<?rfc tocompact="yes"?>
+<?rfc tocdepth="3"?>
+<?rfc tocindent="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc comments="yes"?>
+<?rfc inline="yes"?>
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<rfc category="std" docName="draft-reddy-dots-transport-01" ipr="trust200902">
+  <front>
+    <title abbrev="Co-operative DDoS Mitigation">Co-operative DDoS
+    Mitigation</title>
+
+    <author fullname="Tirumaleswar Reddy" initials="T." surname="Reddy">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>Cessna Business Park, Varthur Hobli</street>
+
+          <street>Sarjapur Marathalli Outer Ring Road</street>
+
+          <city>Bangalore</city>
+
+          <region>Karnataka</region>
+
+          <code>560103</code>
+
+          <country>India</country>
+        </postal>
+
+        <email>tireddy@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Dan Wing" initials="D." surname="Wing">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>170 West Tasman Drive</street>
+
+          <city>San Jose</city>
+
+          <region>California</region>
+
+          <code>95134</code>
+
+          <country>USA</country>
+        </postal>
+
+        <email>dwing@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Prashanth Patil" initials="P." surname="Patil">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street></street>
+
+          <street></street>
+
+          <city></city>
+
+          <country></country>
+        </postal>
+
+        <email>praspati@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Mike Geller" initials="M." surname="Geller">
+      <organization abbrev="Cisco">Cisco Systems, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>3250</street>
+
+          <city></city>
+
+          <region>Florida</region>
+
+          <code>33309</code>
+
+          <country>USA</country>
+        </postal>
+
+        <email>mgeller@cisco.com</email>
+      </address>
+    </author>
+
+    <author fullname="Mohamed Boucadair" initials="M." surname="Boucadair">
+      <organization>France Telecom</organization>
+
+      <address>
+        <postal>
+          <street></street>
+
+          <city>Rennes</city>
+
+          <region></region>
+
+          <code>35000</code>
+
+          <country>France</country>
+        </postal>
+
+        <email>mohamed.boucadair@orange.com</email>
+      </address>
+    </author>
+
+    <author fullname="Robert Moskowitz" initials="R." surname="Moskowitz">
+      <organization>HTT Consulting</organization>
+
+      <address>
+        <postal>
+          <street></street>
+
+          <city>Oak Park, MI</city>
+
+          <code>42837</code>
+
+          <country>United States</country>
+        </postal>
+
+        <email>rgm@htt-consult.com</email>
+      </address>
+    </author>
+
+    <date />
+
+    <workgroup>DOTS</workgroup>
+
+    <abstract>
+      <t>This document discusses mechanisms that a DOTS client can use, when
+      it detects a potential Distributed Denial-of-Service (DDoS) attack, to
+      signal that the DOTS client is under an attack or request an upstream
+      DOTS server to perform inbound filtering in its ingress routers for
+      traffic that the DOTS client wishes to drop. The DOTS server can then
+      undertake appropriate actions (including, blackhole, drop, rate-limit,
+      or add to watch list) on the suspect traffic to the DOTS client, thus
+      reducing the effectiveness of the attack.</t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section anchor="introduction" title="Introduction">
+      <t>A distributed denial-of-service (DDoS) attack is an attempt to make
+      machines or network resources unavailable to their intended users. In
+      most cases, sufficient scale can be achieved by compromising enough
+      end-hosts and using those infected hosts to perpetrate and amplify the
+      attack. The victim in this attack can be an application server, a
+      client, a router, a firewall, or an entire network, etc. The reader may
+      refer, for example, to <xref target="REPORT"></xref> that reports the
+      following:</t>
+
+      <t><list style="symbols">
+          <t>Very large DDoS attacks above the 100 Gbps threshold are
+          experienced.</t>
+
+          <t>DDoS attacks against customers remain the number one operational
+          threat for service providers, with DDoS attacks against
+          infrastructures being the top concern for 2014.</t>
+
+          <t>Over 60% of service providers are seeing increased demand for
+          DDoS detection and mitigation services from their customers (2014),
+          with just over one-third seeing the same demand as in 2013.</t>
+        </list></t>
+
+      <t>In a lot of cases, it may not be possible for an enterprise to
+      determine the cause for an attack, but instead just realize that certian
+      resources seem to be under attack. The document proposes that, in such
+      cases, the DOTS client just inform the DOTS server that the enterprise
+      is under a potential attack and that the DOTS server monitor traffic to
+      the enterprise to mitigate any possible attack. This document also
+      describes a means for an enterprise, which act as DOTS clients, to
+      dynamically inform its DOTS server of the IP addresses or prefixes that
+      are causing DDoS. A DOTS server can use this information to discard
+      flows from such IP addresses reaching the customer network. </t>
+
+      <t>The proposed mechanism can also be used between applications from
+      various vendors that are deployed within the same network, some of them
+      are responsible for monitoring and detecting attacks while others are
+      responsible for enforcing policies on appropriate network elements. This
+      cooperations contributes to a ensure a highly automated network that is
+      also robust, reliable and secure. The advantage of the proposed
+      mechanism is that the DOTS server can provide protection to the DOTS
+      client from bandwidth-saturating DDoS traffic. </t>
+
+      <t>How a DOTS server determines which network elements should be
+      modified to install appropriate filtering rules is out of scope. A
+      variety of mechanisms and protocols (including NETCONF) may be
+      considered to exchange information through a communication interface
+      between the server and these underlying elements; the selection of
+      appropriate mechanisms and protocols to be invoked for that interfaces
+      is deployment-specific.</t>
+
+      <t>Terminology and protocol requirements for co-operative DDoS
+      mitigation are obtained from draft-ietf-dots-requirements.</t>
+    </section>
+
+    <section anchor="notation" title="Notational Conventions">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+      document are to be interpreted as described in <xref
+      target="RFC2119"></xref>.</t>
+    </section>
+
+    <section title="Solution Overview">
+      <t>Network applications have finite resources like CPU cycles, number of
+      processes or threads they can create and use, maximum number of
+      simultaneous connections it can handle, limited resources of the control
+      plane, etc. When processing network traffic, such an application uses
+      these resources to offer its intended task in the most efficient
+      fashion. However, an attacker may be able to prevent the application
+      from performing its intended task by causing the application to exhaust
+      the finite supply of a specific resource.</t>
+
+      <t>The complexity and the multitude of potential targets result in
+      making DDoS detection a distributed system over a network. Flood attacks
+      can be detected at the entrance of the network, SYN floods may be
+      detected by firewalls associated to behavioral analysis. Attacks on the
+      link are carried out by sending enough traffic such that the link
+      becomes excessively congested, and legitimate traffic suffers high
+      packet loss. Other possible DDoS attacks are discussed in <xref
+      target="RFC4732"></xref>.</t>
+
+      <t>In each of the cases described above, if a network resource detects a
+      potential DDoS attack from a set of IP addresses, the network resource
+      (DOTS client) informs its servicing router (DOTS relay) of all suspect
+      IP addresses that need to be blocked or black-listed for further
+      investigation. That DOTS relay in-turn propagates the black-listed IP
+      addresses to the DOTS server and the DOTS server blocks traffic from
+      these IP addresses to the DOTS client thus reducing the effectiveness of
+      the attack. The DOTS client, after certain duration, requests the rules
+      to block traffic from these IP addresses be removed. If a blacklisted
+      IPv4 address is shared by multiple subscribers then the side effect of
+      applying the black-list rule will be that traffic from non-attackers
+      will also be blocked by the access network.</t>
+
+      <t>If a DOTS client cannot determine the IP address(s) that are causing
+      the attack, but is under an attack nonetheless, the DOTS client can just
+      notifiy the DOTS server that it is under a potential attack and request
+      that the DOTS server take precautionary measures to mitigate the
+      attack.</t>
+    </section>
+
+    <section title="Protocol for Signal Channel: HTTP REST">
+      <t>A DOTS client can use RESTful APIs discussed in this section to
+      signal/inform a DOTS server of an attack or any desired IP filtering
+      rules. </t>
+
+      <section title="SOS">
+        <t>The following APIs define the means to signal an SOS from a DOTS
+        client to a DOTS server.</t>
+
+        <t>TBD: SOS messages over DTLS over UDP.</t>
+
+        <section title="Signal SOS">
+          <t>An HTTP POST request will be used to signal SOS to the DOTS
+          server.</t>
+
+          <t><figure anchor="Figure1" title="POST to signal SOS">
+              <artwork align="left"><![CDATA[  POST {scheme}://{host}:{port}/.well-known/{version}/{URI suffix for SOS}
+  Accept: application/json
+  Content-type: application/json
+  {
+     "policy-id": number,     
+     "target-ip": string,
+     "target-port": string,
+   }
+]]></artwork>
+            </figure></t>
+
+          <t>The header fields are described below.</t>
+
+          <t><list style="hanging">
+              <t hangText="policy-id:">Identifier of the policy represented
+              using a number. This identifier must be unique for each policy
+              bound to the DOTS client. This identifier must be generated by
+              the client and used as an opaque value by the server. This
+              document does not make any assumption about how this identifier
+              is generated.</t>
+
+              <t hangText="target-ip:">A list of addresses or prefixes under
+              attack. This is an optional attribute.</t>
+
+              <t hangText="target-port:">A list of ports under attack.. This
+              is an optional attribute.</t>
+            </list></t>
+
+          <t>Note: administrative-related clauses may be included as part of
+          the request (such a contract Identifier or a customer identifier).
+          Those clauses are out of scope of this document.</t>
+
+          <t>The following example shows POST request to signal that a
+          Web-Service is under attack.</t>
+
+          <t><figure anchor="Figure2" title="POST to signal SOS">
+              <artwork align="left"><![CDATA[  POST https://www.example.com/.well-known/v1/SOS
+  Accept: application/json
+  Content-type: application/json
+   {
+     "policy-id": 123321333242,
+     "resource-ip": "2002:db8:6401::1",
+     "resource-port": "443", 
+   }
+]]></artwork>
+            </figure></t>
+
+          <t></t>
+        </section>
+
+        <section title="Recall SOS">
+          <t>An HTTP DELETE request will be used to delete an SOS signaled to
+          the DOTS server.</t>
+
+          <figure anchor="Figure3" title="Recall SOS">
+            <artwork align="left"><![CDATA[  DELETE {scheme}://{host}:{port}/.well-known/{URI suffix for SOS}
+  Accept: application/json
+  Content-type: application/json
+   {
+     "policy-id": number
+   }
+]]></artwork>
+          </figure>
+
+          <t></t>
+        </section>
+
+        <section title="Retrieving SOS ">
+          <t>An HTTP GET request will be used to retrieve an SOS signaled to
+          the DOTS server.</t>
+
+          <figure anchor="Figure4" title="GET to retrieve the rules">
+            <artwork align="left"><![CDATA[  1) To retrieve all SOS signaled by the DOTS client.
+  
+  GET {scheme}://{host}:{port}/.well-known/{URI suffix for SOS} 
+
+  2) To retrieve a specific SOS signaled by the DOTS client.
+
+  GET {scheme}://{host}:{port}/.well-known/{URI suffix for SOS} 
+  Accept: application/json
+  Content-type: application/json
+   {
+     "policy-id": number
+   }]]></artwork>
+          </figure>
+        </section>
+      </section>
+
+      <section title="REST">
+        <t>A DOTS client could use HTTP to provision and manage filters on the
+        DOTS server. The DOTS client authenticates itself to the DOTS relay,
+        which in turn authenticates itself to a DOTS server, creating a
+        two-link chain of transitive authentication between the DOTS client
+        and the DOTS server. The DOTS relay validates if the DOTS client is
+        authorized to signal the black-list rules. Likewise, the DOTS server
+        validates if the DOTS relay is authorized to signal the black-list
+        rules. To create or purge filters, the DOTS client sends HTTP requests
+        to the DOTS relay. The DOTS relay acts as an HTTP proxy, validates the
+        rules and proxies the HTTP requests containing the black-listed IP
+        addresses to the DOTS server. When the DOTS relay receives the
+        associated HTTP response from the HTTP server, it propagates the
+        response back to the DOTS client.</t>
+
+        <t>If an attack is detected by the DOTS relay then it can act as a
+        HTTP client and signal the black-list rules to the DOTS server. Thus
+        the DOTS relay plays the role of both HTTP client and HTTP proxy.</t>
+
+        <t><figure align="center" anchor="fig">
+            <artwork><![CDATA[
+  Network                                           
+  Resource        CPE router        Access network 
+(DOTS client)    (DOTS relay)       (DOTS server)       __________
++-----------+    +----------+       +-------------+    /          \   
+|           |____|          |_______|             |___ | Internet |
+|HTTP Client|    |HTTP Proxy|       | HTTP Server |    |          |
+|           |    |          |       |             |    |          |
++-----------+    +----------+       +-------------+    \__________/  ]]></artwork>
+          </figure></t>
+
+        <t>JSON <xref target="RFC7159"></xref> payloads can be used to convey
+        both filtering rules as well as protocol-specific payload messages
+        that convey request parameters and response information such as
+        errors.</t>
+
+        <t>The figure above explains the protocol with a DOTS relay. The
+        protocol is equally applicable to scenarios where a DOTS client
+        directly talks to the DOTS server.</t>
+
+        <section title="Filtering Rules">
+          <t>The following APIs define means for a DOTS client to configure
+          filtering rules on a DOTS server.</t>
+
+          <section title="Install filtering rules">
+            <t>An HTTP POST request will be used to push filtering rules to
+            the DOTS server.</t>
+
+            <t><figure anchor="Figure5"
+                title="POST to install filtering rules">
+                <artwork align="left"><![CDATA[  POST {scheme}://{host}:{port}/.well-known/{version}/{URI suffix for filtering}
+  Accept: application/json
+  Content-type: application/json
+  {
+     "policy-id": number,
+     "traffic-protocol": string,
+     "source-protocol-port": string, 
+     "destination-protocol-port": string,
+     "destination-ip": string,
+     "source-ip": string,
+     "lifetime": number,
+     "traffic-rate" : number,
+   }
+]]></artwork>
+              </figure></t>
+
+            <t>The header fields are described below.</t>
+
+            <t><list style="hanging">
+                <t hangText="policy-id:">Identifier of the policy represented
+                using a number. This identifier must be unique for each policy
+                bound to the same downstream network. This identifier must be
+                generated by the client and used as an opaque value by the
+                server. This document does not make any assumption about how
+                this identifier is generated.</t>
+
+                <t hangText="traffic-protocol: ">Valid protocol values include
+                tcp and udp.</t>
+
+                <t hangText="source-protocol-port: ">For TCP or UDP: the
+                source range of ports (e.g., 1024-65535).</t>
+
+                <t hangText="destination-protocol-port: ">For TCP or UDP: the
+                destination range of ports (e.g., 443-443). This information
+                is useful to avoid disturbing a group of customers when
+                address sharing is in use <xref target="RFC6269"></xref>.</t>
+
+                <t hangText="destination-ip: ">The destination IP addresses or
+                prefixes.</t>
+
+                <t hangText="source-ip: ">The source IP addresses or
+                prefixes.</t>
+
+                <t hangText="lifetime: ">Lifetime of the policy in seconds.
+                Indicates the validity of a rule. Upon the expiry of this
+                lifetime, and if the request is not reiterated, the rule will
+                be withdrawn at the upstream network. A null value is not
+                allowed.</t>
+
+                <t hangText="traffic-rate: ">This field carries the rate
+                information in IEEE floating point [IEEE.754.1985] format,
+                units being bytes per second. A traffic-rate of '0' should
+                result on all traffic for the particular flow to be
+                discarded.</t>
+              </list></t>
+
+            <t>The relative order of two rules is determined by comparing
+            their respective policy identifiers. The rule with lower numeric
+            policy identifier value has higher precedence (and thus will match
+            before) than the rule with higher numeric policy identifier
+            value.</t>
+
+            <t>Note: administrative-related clauses may be included as part of
+            the request (such a contract Identifier or a customer identifier).
+            Those clauses are out of scope of this document.</t>
+
+            <t>The following example shows POST request to block traffic from
+            attacker IPv6 prefix 2001:db8:abcd:3f01::/64 to network resource
+            using IPv6 address 2002:db8:6401::1 to provide HTTPS web
+            service.</t>
+
+            <t><figure anchor="Figure6"
+                title="POST to install black-list rules">
+                <artwork align="left"><![CDATA[  POST https://www.example.com/.well-known/v1/filter
+  Accept: application/json
+  Content-type: application/json
+   {
+     "policy-id": 123321333242,
+     "traffic-protocol": "tcp",
+     "source-protocol-port": "1-65535", 
+     "destination-protocol-port": "443",
+     "destination-ip": "2001:db8:abcd:3f01::/64",
+     "source-ip": "2002:db8:6401::1", 
+     "lifetime": 1800,
+     "traffic-rate": 0,
+   }
+]]></artwork>
+              </figure></t>
+
+            <t></t>
+          </section>
+
+          <section title="Remove filtering rules">
+            <t>An HTTP DELETE request will be used to delete filtering rules
+            programmed on the DOTS server.</t>
+
+            <figure anchor="Figure7" title="DELETE to remove the rules">
+              <artwork align="left"><![CDATA[  DELETE {scheme}://{host}:{port}/.well-known/{URI suffix for filtering}
+  Accept: application/json
+  Content-type: application/json
+   {
+     "policy-id": number
+   }
+]]></artwork>
+            </figure>
+
+            <t></t>
+          </section>
+
+          <section title="Retrieving installed filtering rules  ">
+            <t>An HTTP GET request will be used to retrieve filtering rules
+            programmed on the DOTS server.</t>
+
+            <figure anchor="Figure8" title="GET to retrieve the rules">
+              <artwork align="left"><![CDATA[  1) To retrieve all the black-lists rules programmed by the DOTS client.
+  
+  GET {scheme}://{host}:{port}/.well-known/{URI suffix for filtering} 
+
+  2) To retrieve specific black-list rules programmed by the DOTS-cient.
+
+  GET {scheme}://{host}:{port}/.well-known/{URI suffix for filtering} 
+  Accept: application/json
+  Content-type: application/json
+   {
+     "policy-id": number
+   }]]></artwork>
+            </figure>
+          </section>
+        </section>
+      </section>
+    </section>
+
+    <section title="IANA Considerations">
+      <t>TODO</t>
+    </section>
+
+    <section anchor="security" title="Security Considerations">
+      <t>TODO</t>
+
+      <t>HTTPS MUST be used for data confidentiality and TLS based on client
+      certificate MUST be used for mutual authentication. </t>
+
+      <t>Special care should be taken in order to ensure that the activation
+      of the proposed mechanism won't have an impact on the stability of the
+      network (including connectivity and services delivered over that
+      network).</t>
+
+      <t>Involved functional elements in the cooperation system must establish
+      exchange instructions and notification over a secure and authenticated
+      channel. Adequate filters can be enforced to avoid that nodes outside a
+      trusted domain can inject request such as deleting filtering rules.
+      Nevertheless, attacks can be initiated from within the trusted domain if
+      an entity has been corrupted. Adequate means to monitor trusted nodes
+      should also be enabled.</t>
+    </section>
+
+    <section anchor="ack" title="Acknowledgements">
+      <t>Thanks to C. Jacquenet for the discussion and comments.</t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119"?>
+    </references>
+
+    <references title="Informative References">
+      <?rfc include="reference.RFC.4732"?>
+
+      <reference anchor="REPORT"
+                 target="http://pages.arbornetworks.com/rs/arbor/images/WISR2014.pdf">
+        <front>
+          <title>Worldwide Infrastructure Security Report</title>
+
+          <author fullname="Arbor">
+            <organization></organization>
+          </author>
+
+          <date year="2014" />
+        </front>
+      </reference>
+
+      <?rfc include="reference.RFC.7159"?>
+
+      <?rfc include="reference.RFC.5575"?>
+
+      <?rfc include='reference.RFC.6269'?>
+    </references>
+
+    <section title="BGP">
+      <t>BGP defines a mechanism as described in <xref
+      target="RFC5575"></xref> that can be used to automate inter-domain
+      coordination of traffic filtering, such as what is required in order to
+      mitigate DDoS attacks. However, support for BGP in an access network
+      does not guarantee that traffic filtering will always be honored. Since
+      a DOTS client will not receive an acknowledgment for the filtering
+      request, the DOTS client should monitor and apply similar rules in its
+      own network in cases where the DOTS server is unable to enforce the
+      filtering rules. In addition, enforcement of filtering rules of BGP on
+      Internet routers are usually governed by the maximum number of data
+      elements the routers can hold as well as the number of events they are
+      able to process in a given unit of time.</t>
+    </section>
+  </back>
+</rfc>
