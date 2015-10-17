@@ -222,27 +222,31 @@
       from performing its intended task by causing the application to exhaust
       the finite supply of a specific resource.</t>
 
-      <t>The complexity and the multitude of potential targets result in
-      making DDoS detection a distributed system over a network. Flood attacks
-      can be detected at the entrance of the network, SYN floods may be
-      detected by firewalls associated to behavioral analysis. Attacks on the
-      link are carried out by sending enough traffic such that the link
-      becomes excessively congested, and legitimate traffic suffers high
-      packet loss. Other possible DDoS attacks are discussed in <xref
+      <t>TCP DDoS SYN-flood is a memory-exhaustion attack on the victim and
+      ACK-flood is a CPU exhaustion attack on the victim. Attacks on the link
+      are carried out by sending enough traffic such that the link becomes
+      excessively congested, and legitimate traffic suffers high packet loss.
+      Stateful firewalls can also be attacked by sending traffic that causes
+      the firewall to hold excessive state and the firewall runs out of
+      memory, and can no longer instantiate the state required to pass
+      legitimate flows. Other possible DDoS attacks are discussed in <xref
       target="RFC4732"></xref>.</t>
 
       <t>In each of the cases described above, if a network resource detects a
       potential DDoS attack from a set of IP addresses, the network resource
       (DOTS client) informs its servicing router (DOTS relay) of all suspect
       IP addresses that need to be blocked or black-listed for further
-      investigation. That DOTS relay in-turn propagates the black-listed IP
+      investigation. DOTS client could also specify protocols and ports in the
+      black-list rule. That DOTS relay in-turn propagates the black-listed IP
       addresses to the DOTS server and the DOTS server blocks traffic from
       these IP addresses to the DOTS client thus reducing the effectiveness of
-      the attack. The DOTS client, after certain duration, requests the rules
-      to block traffic from these IP addresses be removed. If a blacklisted
-      IPv4 address is shared by multiple subscribers then the side effect of
-      applying the black-list rule will be that traffic from non-attackers
-      will also be blocked by the access network.</t>
+      the attack. The DOTS client periodically queries the DOTS server to
+      check the counters mitigating the attack. If the DOTS client receives
+      response that the counters have not incremented then it can instruct the
+      black-list rules to be removed. If a blacklisted IPv4 address is shared
+      by multiple subscribers then the side effect of applying the black-list
+      rule will be that traffic from non-attackers will also be blocked by the
+      access network.</t>
 
       <t>If a DOTS client cannot determine the IP address(s) that are causing
       the attack, but is under an attack nonetheless, the DOTS client can just
@@ -258,9 +262,9 @@
 
       <section title="SOS">
         <t>The following APIs define the means to signal an SOS from a DOTS
-        client to a DOTS server.</t>
+        client to a DOTS server. </t>
 
-        <t>TBD: SOS messages over DTLS over UDP.</t>
+        <t>TBD: SOS messages SHOULD be exchanged over DTLS over UDP. </t>
 
         <section title="Signal SOS">
           <t>An HTTP POST request will be used to signal SOS to the DOTS
@@ -319,8 +323,6 @@
    }
 ]]></artwork>
             </figure></t>
-
-          <t></t>
         </section>
 
         <section title="Recall SOS">
@@ -551,8 +553,13 @@
     <section anchor="security" title="Security Considerations">
       <t>TODO</t>
 
-      <t>HTTPS MUST be used for data confidentiality and TLS based on client
-      certificate MUST be used for mutual authentication.</t>
+      <t>HTTPS MUST be used for data confidentiality and (D)TLS based on
+      client certificate MUST be used for mutual authentication. The
+      interaction between the DOTS agents requires Datagram Transport Layer
+      Security (DTLS) and Transport Layer Security (TLS) with a ciphersuite
+      offering confidentiality protection and the guidance given in <xref
+      target="RFC7525"></xref> must be followed to avoid attacks on
+      (D)TLS.</t>
 
       <t>Special care should be taken in order to ensure that the activation
       of the proposed mechanism won't have an impact on the stability of the
@@ -576,6 +583,8 @@
   <back>
     <references title="Normative References">
       <?rfc include="reference.RFC.2119"?>
+
+      <?rfc include="reference.RFC.7525"?>
     </references>
 
     <references title="Informative References">
