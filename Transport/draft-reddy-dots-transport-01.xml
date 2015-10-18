@@ -262,9 +262,9 @@
 
       <section title="SOS">
         <t>The following APIs define the means to signal an SOS from a DOTS
-        client to a DOTS server. </t>
+        client to a DOTS server.</t>
 
-        <t>TBD: SOS messages SHOULD be exchanged over DTLS over UDP. </t>
+        <t>TBD: SOS messages SHOULD be exchanged over DTLS over UDP.</t>
 
         <section title="Signal SOS">
           <t>An HTTP POST request will be used to signal SOS to the DOTS
@@ -307,6 +307,15 @@
           <t>Note: administrative-related clauses may be included as part of
           the request (such a contract Identifier or a customer identifier).
           Those clauses are out of scope of this document.</t>
+
+          <t>To avoid SOS message fragmentation and the consequently decreased
+          probability of message delivery, DOTS agents MUST ensure that the
+          DTLS record MUST fit within a single datagram. DOTS agents can
+          exploit the fact that the IP specification <xref
+          target="RFC0791"></xref> specifies that IP packets up to 576 bytes
+          should never need to be fragmented, thus sending a maximum of 500
+          bytes of SOS message over a UDP datagram will generally avoid IP
+          fragmentation. </t>
 
           <t>The following example shows POST request to signal that a
           Web-Service is under attack.</t>
@@ -608,6 +617,8 @@
       <?rfc include="reference.RFC.5575"?>
 
       <?rfc include='reference.RFC.6269'?>
+
+      <?rfc include='reference.RFC.0791'?>
     </references>
 
     <section title="BGP">
