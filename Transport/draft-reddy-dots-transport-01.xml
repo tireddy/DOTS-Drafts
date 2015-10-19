@@ -202,7 +202,7 @@
       is deployment-specific.</t>
 
       <t>Terminology and protocol requirements for co-operative DDoS
-      mitigation are obtained from draft-ietf-dots-requirements.</t>
+      mitigation are obtained from [I-D.mortensen-dots-requirements].</t>
     </section>
 
     <section anchor="notation" title="Notational Conventions">
@@ -315,7 +315,7 @@
           target="RFC0791"></xref> specifies that IP packets up to 576 bytes
           should never need to be fragmented, thus sending a maximum of 500
           bytes of SOS message over a UDP datagram will generally avoid IP
-          fragmentation. </t>
+          fragmentation.</t>
 
           <t>The following example shows POST request to signal that a
           Web-Service is under attack.</t>
